@@ -89,9 +89,20 @@ def update_users():
     return "updating users"
 
 
-@app.get("/api/users/1")
-def get_user():
-    return "getting user 1"
+@app.get("/api/users/<id>")
+def get_user(id):
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=extras.RealDictCursor)
+
+    cur.execute("SELECT * FROM users WHERE id = %s", (id,))
+    user = cur.fetchone()
+
+    if user is None:
+        return jsonify({"message": "User not found"}), 404
+        # 404 es el código de error de no encontrado para el cliente
+        # y para el usuario es un mensaje de que no se encontró el usuario
+
+    return jsonify(user)
 
 
 if __name__ == "__main__":
