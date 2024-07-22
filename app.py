@@ -42,7 +42,16 @@ def hello_world():
 
 @app.get("/api/users")
 def get_users():
-    return "getting users"
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=extras.RealDictCursor)
+
+    cur.execute("SELECT * FROM users")
+    result = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return jsonify(result)
 
 
 @app.post("/api/users")
