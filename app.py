@@ -1,11 +1,14 @@
 from flask import Flask, request, jsonify
+
 # requests es para extraer los datos de la petición que está haciendo el cliente
 # jsonify permite devolver un diccionario como un json
 from psycopg2 import connect, extras
+
 # psycopg2 es para conectarse a la base de datos
 # connect es para conectarse a la base de datos
 # extras es para obtener los datos de la base de datos no como tuplas sino como diccionarios
 from cryptography.fernet import Fernet
+
 # Fernet es para encriptar y desencriptar datos
 
 
@@ -59,7 +62,9 @@ def create_users():
     new_user = request.get_json()
     username = new_user["username"]
     email = new_user["email"]
-    password = Fernet(key).encrypt(bytes(new_user["password"], "utf-8")) # le pasamos un string en utf-8, lo pasa a bits y lo encripta
+    password = Fernet(key).encrypt(
+        bytes(new_user["password"], "utf-8")
+    )  # le pasamos un string en utf-8, lo pasa a bits y lo encripta
 
     conn = get_connection()
     cursor = conn.cursor(cursor_factory=extras.RealDictCursor)
@@ -69,7 +74,9 @@ def create_users():
         "INSERT INTO users (username, email, password) VALUES (%s, %s, %s) RETURNING *",
         (username, email, password),
     )
-    new_creadted_user = cursor.fetchone() # fetchone() para obtener el resultado de la inserción que retorna el RETURNING
+    new_creadted_user = (
+        cursor.fetchone()
+    )  # fetchone() para obtener el resultado de la inserción que retorna el RETURNING
     print(new_creadted_user)
     conn.commit()
 
@@ -85,12 +92,12 @@ def delete_users(id):
     cur = conn.cursor(cursor_factory=extras.RealDictCursor)
 
     cur.execute("DELETE FROM users WHERE id = %s RETURNING * ", (id,))
-    user = cur.fetchone() # fetchone() para obtener el usuario eliminado
+    user = cur.fetchone()  # fetchone() para obtener el usuario eliminado
 
     conn.commit()
 
-    conn.close()
     cur.close()
+    conn.close()
 
     print(user)
 
@@ -102,9 +109,32 @@ def delete_users(id):
     return jsonify(user)
 
 
-@app.put("/api/users/1")
-def update_users():
-    return "updating users"
+@app.put("/api/users/<id>")
+def update_users(id):
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=extras.RealDictCursor)
+
+    new_user = request.get_json()
+    username = new_user["username"]
+    email = new_user["email"]
+    password = Fernet(key).encrypt(bytes(new_user["password"], "utf-8"))
+    # Se deben enviar todos los campos, sino falla
+
+    cur.execute(
+        "UPDATE users SET username = %s, email = %s, password = %s WHERE id = %s RETURNING *",
+        (username, email, password, id),
+    )
+    update_users = cur.fetchone()
+
+    conn.commit()
+
+    cur.close()  # primero cerramos el cursor
+    conn.close()  # luego cerramos la conexión
+
+    if update_users is None:
+        return jsonify({"message": "User not found"}), 404
+
+    return jsonify(update_users)
 
 
 @app.get("/api/users/<id>")
