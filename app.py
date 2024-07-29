@@ -1,13 +1,14 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
+from psycopg2 import connect, extras
+from cryptography.fernet import Fernet
 
 # requests es para extraer los datos de la petición que está haciendo el cliente
 # jsonify permite devolver un diccionario como un json
-from psycopg2 import connect, extras
+# send_file es para enviar un archivo al cliente
 
 # psycopg2 es para conectarse a la base de datos
 # connect es para conectarse a la base de datos
 # extras es para obtener los datos de la base de datos no como tuplas sino como diccionarios
-from cryptography.fernet import Fernet
 
 # Fernet es para encriptar y desencriptar datos
 
@@ -29,8 +30,7 @@ def get_connection():
     conn = connect(host=host, port=port, dbname=dbname, user=user, password=password)
     return conn
 
-
-# Página inicial
+"""
 @app.route("/")
 def hello_world():
     conn = get_connection()
@@ -41,7 +41,7 @@ def hello_world():
 
     print(result)
     return "Hello, World! The result is: " + str(result)
-
+"""
 
 @app.get("/api/users")
 def get_users():
@@ -151,6 +151,11 @@ def get_user(id):
         # y para el usuario es un mensaje de que no se encontró el usuario
 
     return jsonify(user)
+
+
+@app.get("/")
+def home():
+    return send_file("static/index.html")
 
 
 if __name__ == "__main__":
