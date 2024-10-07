@@ -7,8 +7,11 @@ https://youtu.be/Qqgry8mezC8?si=bvYch9_FBEzMHut9
 ## Como ejecutar
 
 1) activar el entorno virtual
-* Detallar aquí los pasos de como activarlo
-* Instalar las dependencias en caso de que lo pida
+    `$ source venv/Scripts/activate`
+
+(Opcional) Instalar todas las dependencias
+-  `$ pip install -r requirements.txt` : para instalar todas las dependencias
 
 2) ejecutar el proyecto
-* colocar el comando para ejecuarlo
+-  Ubicarse en la carpeta
+-  `$ py app.py`

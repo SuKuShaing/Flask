@@ -3,7 +3,7 @@ from psycopg2 import connect, extras
 from cryptography.fernet import Fernet
 
 # requests es para extraer los datos de la petición que está haciendo el cliente
-# jsonify permite devolver un diccionario como un json
+# jsonify permite devolver un diccionario (un objeto) como un json
 # send_file es para enviar un archivo al cliente
 
 # psycopg2 es para conectarse a la base de datos
@@ -15,7 +15,7 @@ from cryptography.fernet import Fernet
 
 app = Flask(__name__)
 key = Fernet.generate_key()
-# Fernet.generate_key() genera una clave para encriptar y desencriptar datos
+# Fernet.generate_key() genera una clave para encriptar y desencriptar datos, lo usaremos para encriptar las contraseñas
 
 
 # Obtiene la conexión a la base de datos
@@ -43,10 +43,11 @@ def hello_world():
     return "Hello, World! The result is: " + str(result)
 """
 
+# Ruta para obtener todos los usuarios, se usa el método GET
 @app.get("/api/users")
 def get_users():
     conn = get_connection()
-    cur = conn.cursor(cursor_factory=extras.RealDictCursor)
+    cur = conn.cursor(cursor_factory=extras.RealDictCursor)  # con cursor_factory=extras.RealDictCursor se obtienen los datos de la base de datos como diccionarios
 
     cur.execute("SELECT * FROM users")
     result = cur.fetchall()
@@ -57,6 +58,7 @@ def get_users():
     return jsonify(result)
 
 
+# Ruta para crear usuarios, se usa el método POST
 @app.post("/api/users")
 def create_users():
     new_user = request.get_json()
@@ -86,6 +88,7 @@ def create_users():
     return jsonify(new_creadted_user)
 
 
+# Ruta para eliminar usuarios, se usa el método DELETE
 @app.delete("/api/users/<id>")
 def delete_users(id):
     conn = get_connection()
@@ -109,6 +112,7 @@ def delete_users(id):
     return jsonify(user)
 
 
+# Ruta para actualizar usuarios, se usa el método PUT
 @app.put("/api/users/<id>")
 def update_users(id):
     conn = get_connection()
