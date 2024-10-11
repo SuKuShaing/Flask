@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify, send_file
 from psycopg2 import connect, extras
 from cryptography.fernet import Fernet
+from dotenv import load_dotenv
+from os import environ
 
 # requests es para extraer los datos de la petición que está haciendo el cliente
 # jsonify permite devolver un diccionario (un objeto) como un json
@@ -11,7 +13,12 @@ from cryptography.fernet import Fernet
 # extras es para obtener los datos de la base de datos no como tuplas sino como diccionarios
 
 # Fernet es para encriptar y desencriptar datos
+# load_dotenv es para cargar las variables de entorno del archivo .env
+# environ es para obtener las variables de entorno
 
+
+# Se debe ejecutar a penas carga la aplicación para cargar las variables de entorno
+load_dotenv()  # carga las variables de entorno del archivo .env
 
 app = Flask(__name__)
 key = Fernet.generate_key()
@@ -19,11 +26,11 @@ key = Fernet.generate_key()
 
 
 # Obtiene la conexión a la base de datos
-host = "localhost"
-port = "5432"
-dbname = "usersdb-fazt"
-user = "fast_user"
-password = "fast_user"
+host = environ.get("DB_HOST")
+port = environ.get("DB_PORT")
+dbname = environ.get("DB_NAME")
+user = environ.get("DB_USER")
+password = environ.get("DB_PASSWORD")
 
 
 def get_connection():
