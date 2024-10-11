@@ -1,6 +1,8 @@
 const userForm = document.querySelector("#userForm");
 
 let users = [];
+let editing = false;
+let userIdEdit = null;
 
 // Obtiene los usuarios de la base de datos
 window.addEventListener("DOMContentLoaded", async () => {
@@ -22,43 +24,68 @@ userForm.addEventListener("submit", async (e) => {
 	const email = userForm["email"].value;
 	const password = userForm["password"].value;
 
-	/* 
-    // Estrucutra de una petición fetch
-    fetch('Endpoint/del/Servidor', { // fetch recibe dos parámetros, el primero es la URL del servidor y el segundo es un objeto con las opciones de la petición
-        method: 'MetodoDeLaPetición', // método de la petición, puede ser GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
-        headers: { // cabeceras de la petición
-            'Content-Type': 'application/json' // tipo de contenido que se está enviando
-        },
-        body: JSON.stringify({ // cuerpo de la petición, se convierte a JSON
-            userName, // datos del formulario
-            email, // datos del formulario
-            password // datos del formulario
-        })
-    })
-    */
+	if (!editing) {
+		/* 
+		// Estrucutra de una petición fetch
+		fetch('Endpoint/del/Servidor', { // fetch recibe dos parámetros, el primero es la URL del servidor y el segundo es un objeto con las opciones de la petición
+			method: 'MetodoDeLaPetición', // método de la petición, puede ser GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD
+			headers: { // cabeceras de la petición
+				'Content-Type': 'application/json' // tipo de contenido que se está enviando
+			},
+			body: JSON.stringify({ // cuerpo de la petición, se convierte a JSON
+				userName, // datos del formulario
+				email, // datos del formulario
+				password // datos del formulario
+			})
+		})
+		*/
 
-	const response = await fetch("/api/users", {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-		},
-		body: JSON.stringify({
-			username,
-			email,
-			password,
-		}),
-	});
+		const response = await fetch("/api/users", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				username,
+				email,
+				password,
+			}),
+		});
 
-	const data = await response.json(); // La API a responde con los datos creados en la base de datos y esos datos se guardan en response
-	console.log(data);
+		const data = await response.json(); // La API a responde con los datos creados en la base de datos y esos datos se guardan en response
+		console.log(data);
 
-	users.unshift(data);
+		users.unshift(data);
+	} else {
+		const response = await fetch(`/api/users/${userIdEdit}`, {
+			method: "PUT",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				username,
+				email,
+				password,
+			}),
+		});
+
+		const updatedUser = await response.json();
+		console.log(updatedUser);
+
+		users = users.map(user => user.id === updatedUser.id ? updatedUser : user);
+		renderUser(users);
+
+		// para que las variables vuelvan a su estado original
+		editing = false;
+		userIdEdit = null;
+	}
+
 	renderUser(users);
 
 	userForm.reset(); // limpia los campos del formulario
 });
 
-// Renderiza a los usuarios en la pantalla
+// Renderiza las tarjetas de los usuarios en la pantalla
 function renderUser(users) {
 	// console.log(users)
 	const userList = document.querySelector("#userList");
@@ -92,6 +119,22 @@ function renderUser(users) {
 			users = users.filter((user) => user.id !== data.id); // elimina de la lista al usuario eliminado, el filter mantiene a todos los usuario true y elimina al false
 			renderUser(users);
 		});
+
+		const btnEdit = userItem.querySelector(".btn-edit");
+		btnEdit.addEventListener("click", async () => {
+			// obtiene los datos del usuario desde la base de datos
+			const response = await fetch(`/api/users/${user.id}`);
+			const data = await response.json();
+
+			// cargamos los datos del usuario en el formulario
+			userForm["userName"].value = data.username;
+			userForm["email"].value = data.email;
+			userForm["password"].value = "";
+
+			editing = true;
+			userIdEdit = user.id;
+		});
+
 		userList.append(userItem);
 	});
 }
